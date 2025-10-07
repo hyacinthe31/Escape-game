@@ -12,7 +12,7 @@ const correctConnections: Connection[] = [
   { from: 10, to: 15 },
 ];
 
-export default function BrainPuzzle() {
+export default function BrainPuzzle({ onSolve }: { onSolve: () => void }) {
   const socket = getSocket();
   const [neurons, setNeurons] = useState<Point[]>([]);
   const [role, setRole] = useState<string | null>(null);
@@ -23,6 +23,7 @@ export default function BrainPuzzle() {
   const [dragStart, setDragStart] = useState<Point | null>(null);
   const [dragEnd, setDragEnd] = useState<{ x: number; y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
 
   useEffect(() => {
     socket.emit("join_room", "patient-1");
@@ -51,6 +52,20 @@ export default function BrainPuzzle() {
     };
   }, []);
 
+  const isGameCompleted = correctConnections.every((c) =>
+    activated.some(
+      (a) =>
+        (a.from === c.from && a.to === c.to) ||
+        (a.from === c.to && a.to === c.from)
+    )
+  );
+
+  useEffect(() => {
+    if (isGameCompleted) {
+      onSolve(); // 🔥 informe Mission que le puzzle est fini
+    }
+  }, [isGameCompleted, onSolve]);
+
   const validateConnection = (from: number, to: number, emit = true) => {
     const match = correctConnections.find(
       (c) =>
@@ -67,8 +82,19 @@ export default function BrainPuzzle() {
     }
 
     if (match) {
-      setActivated((prev) => [...prev, match]);
-      setFeedback("✅ Bonne connexion !");
+        // Vérifie que la connexion n'est pas déjà validée
+      const alreadyDone = activated.some(
+        (a) =>
+          (a.from === from && a.to === to) ||
+          (a.from === to && a.to === from)
+      );
+
+      if (!alreadyDone) {
+        setActivated((prev) => [...prev, match]);
+        setFeedback("✅ Bonne connexion !");
+      } else {
+        setFeedback("⚡ Connexion déjà activée !");
+      }
     } else {
       setFeedback("❌ Mauvaise connexion !");
     }
@@ -118,6 +144,7 @@ export default function BrainPuzzle() {
       </div>
     );
   }
+
 
   return (
     <div className="flex flex-col items-center">

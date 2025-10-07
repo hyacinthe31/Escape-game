@@ -27,7 +27,7 @@ export default function Mission() {
       {currentOrgan === "brain" && (
         <>
           <h2 className="text-2xl mb-4 text-cyan-400">Phase 1 : Cerveau</h2>
-          <BrainPuzzle />
+          <BrainPuzzle onSolve={() => setSolved(true)} />
         </>
       )}
 
@@ -44,13 +44,19 @@ export default function Mission() {
       )}
 
       <div className="mt-8">
-        <button
-          onClick={handleSolve}
-          className="px-4 py-2 bg-cyan-600 rounded-xl hover:bg-cyan-700 transition"
-        >
-          {solved ? "✔️ Résolu !" : "Passer à l'étape suivante"}
-        </button>
+        {solved && (
+          <button
+            onClick={handleSolve}
+            className="px-4 py-2 bg-cyan-600 rounded-xl hover:bg-cyan-700 transition cursor-pointer"
+          >
+            Passer à l'étape suivante
+          </button>
+        )}
+        {!solved && (
+          <p className="text-gray-500 italic">Résous l'étape pour continuer...</p>
+        )}
       </div>
+
     </main>
   );
 }
