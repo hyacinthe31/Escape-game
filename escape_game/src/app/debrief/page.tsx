@@ -1,4 +1,3 @@
-// app/lobby/page.tsx
 export default function Lobby() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center">
