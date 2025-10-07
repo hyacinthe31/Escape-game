@@ -1,13 +1,17 @@
 "use client";
-import { useEffect, useState } from "react";
-import socket from "@/lib/socket";
+import { useEffect, useMemo, useState } from "react";
+import { getSocket } from "@/lib/socket";
 import Link from "next/link";
 
 export default function Lobby() {
   const [role, setRole] = useState<string | null>(null);
   const [players, setPlayers] = useState(0);
+  const [socket, setSocket] = useState<any>(null);
 
   useEffect(() => {
+    const socket = getSocket();
+    socket.connect();
+    setSocket(socket);
     socket.emit("join_room", "patient-1");
 
     socket.on("role_assigned", (r) => setRole(r));

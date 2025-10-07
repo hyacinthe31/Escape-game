@@ -1,4 +1,26 @@
-import { io } from "socket.io-client";
+// /lib/socket.ts
+import { io, Socket } from "socket.io-client";
 
-const socket = io("http://localhost:4000"); // port serveur
-export default socket;
+let _socket: Socket | null = null;
+
+export function getSocket(): Socket {
+  if (typeof window === "undefined") {
+    throw new Error("Socket dispo uniquement côté client");
+  }
+  if (_socket) return _socket;
+
+  // Survie au HMR : on range l’instance sur window
+  const w = window as any;
+  if (w.__socket) {
+    _socket = w.__socket as Socket;
+  } else {
+    _socket = io("http://localhost:4000", {
+      transports: ["websocket"],
+      autoConnect: false,   // on connecte nous-mêmes
+      reconnection: true,
+    });
+    w.__socket = _socket;
+  }
+  return _socket!;
+}
+
