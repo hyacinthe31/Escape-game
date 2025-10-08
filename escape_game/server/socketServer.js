@@ -10,6 +10,39 @@ const io = new Server(server, {
 
 const rooms = {};
 
+// ---- TIMER GLOBAL ----
+let globalTimer = {
+  startTime: null,
+  interval: null,
+  running: false,
+};
+
+function startGlobalTimer(io) {
+  if (globalTimer.running) return;
+  globalTimer.startTime = Date.now();
+  globalTimer.running = true;
+
+  globalTimer.interval = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - globalTimer.startTime) / 1000); // secondes
+    io.emit("timer_update", elapsed);
+  }, 1000);
+}
+
+function stopGlobalTimer(io) {
+  if (!globalTimer.running) return;
+  globalTimer.running = false;
+  clearInterval(globalTimer.interval);
+  io.emit("timer_stop", Math.floor((Date.now() - globalTimer.startTime) / 1000));
+}
+
+function addPenalty(io, seconds) {
+  if (!globalTimer.running) return;
+  globalTimer.startTime -= seconds * 1000; // recule le start => ajoute du temps
+  io.emit("timer_penalty", seconds);
+}
+
+
+
 function generateNeurons() {
   return Array.from({ length: 16 }).map((_, i) => ({
     id: i + 1,
@@ -102,6 +135,16 @@ io.on("connection", (socket) => {
 
     console.log(`Room ${room}: ${players} joueurs`);
   });
+
+  // 🕒 Démarre le timer global au moment où la première salle se crée
+  if (!globalTimer.running) startGlobalTimer(io);
+
+  socket.on("penalty_add", (sec = 5) => {
+    console.log(`⏱️ +${sec}s de pénalité`);
+    addPenalty(io, sec);
+  });
+
+
 
   socket.on("action", (data) => {
     socket.to(data.room).emit("update_state", data);
@@ -267,6 +310,7 @@ io.on("connection", (socket) => {
 
       if (m.cleared.size >= m.obstructions.length) {
         io.to(room).emit("lungs3_solved");
+        stopGlobalTimer(io);
       }
     }, 200);
   });

@@ -82,7 +82,7 @@ export default function BrainPuzzle({ onSolve }: { onSolve: () => void }) {
     }
 
     if (match) {
-        // Vérifie que la connexion n'est pas déjà validée
+      // Vérifie que la connexion n'est pas déjà validée
       const alreadyDone = activated.some(
         (a) =>
           (a.from === from && a.to === to) ||
@@ -97,6 +97,7 @@ export default function BrainPuzzle({ onSolve }: { onSolve: () => void }) {
       }
     } else {
       setFeedback("❌ Mauvaise connexion !");
+      socket.emit("penalty_add", 5);
     }
     setTimeout(() => setFeedback(null), 1000);
   };
