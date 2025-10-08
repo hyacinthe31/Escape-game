@@ -2,6 +2,7 @@
 import { useState } from "react";
 import BrainPuzzle from "@/components/BrainPuzzle";
 import HeartPuzzle from "@/components/HeartPuzzle";
+import LungsPuzzle from "@/components/LungsPuzzle";
 
 export default function Mission() {
   // Liste des étapes (organes)
@@ -40,7 +41,10 @@ export default function Mission() {
       )}
 
       {currentOrgan === "lungs" && (
-        <h2 className="text-2xl text-blue-400">Phase 3 : les poumons</h2>
+        <>
+          <h2 className="text-2xl text-blue-400">Phase 3 : les poumons</h2>
+          <LungsPuzzle onSolve={() => setSolved(true)} />
+        </>
       )}
 
       {currentOrgan === "dna" && (
