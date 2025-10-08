@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import BrainPuzzle from "@/components/BrainPuzzle";
+import HeartPuzzle from "@/components/HeartPuzzle";
 
 export default function Mission() {
   // Liste des étapes (organes)
@@ -32,11 +33,14 @@ export default function Mission() {
       )}
 
       {currentOrgan === "heart" && (
-        <h2 className="text-2xl text-red-500">❤️ Prochaine étape : le cœur (à venir)</h2>
+        <>
+          <h2 className="text-2xl text-red-500">Phase 2 : le cœur</h2>
+          <HeartPuzzle onSolve={() => setSolved(true)} />
+        </>
       )}
 
       {currentOrgan === "lungs" && (
-        <h2 className="text-2xl text-blue-400">🫁 Étape suivante : les poumons (à venir)</h2>
+        <h2 className="text-2xl text-blue-400">Phase 3 : les poumons</h2>
       )}
 
       {currentOrgan === "dna" && (

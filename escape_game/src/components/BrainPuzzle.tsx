@@ -240,6 +240,9 @@ export default function BrainPuzzle({ onSolve }: { onSolve: () => void }) {
           {feedback}
         </motion.p>
       )}
+      {!feedback && (
+        <p className="mt-4 text-gray-400 italic">Fais une connexion...</p>
+      )}
     </div>
   );
 }

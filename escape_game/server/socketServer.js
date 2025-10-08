@@ -18,6 +18,10 @@ function generateNeurons() {
   }));
 }
 
+function randomTargetBpm() {
+  return Math.floor(Math.random() * 31) + 55; // 55..85
+}
+
 io.on("connection", (socket) => {
   socket.on("join_room", (room) => {
     if (!rooms[room]) {
@@ -25,18 +29,22 @@ io.on("connection", (socket) => {
         players: new Set(),
         roles: new Map(),
         neurons: generateNeurons(),
+        heartTarget: null,
       };
     }
     const r = rooms[room];
     r.players.add(socket.id);
     socket.join(room);
 
-    // rôle
-    const rolesUsed = new Set(r.roles.values());
-    let role = "tech";
-    if (!rolesUsed.has("medic")) role = "medic";
-    else if (!rolesUsed.has("tech")) role = "tech";
-    else role = "spectator";
+    // Vérifie s’il a déjà un rôle
+    let role = r.roles.get(socket.id);
+    if (!role) {
+      const rolesUsed = new Set(r.roles.values());
+      if (!rolesUsed.has("medic")) role = "medic";
+      else if (!rolesUsed.has("tech")) role = "tech";
+      else role = "spectator";
+      r.roles.set(socket.id, role);
+    }
 
     r.roles.set(socket.id, role);
     socket.emit("role_assigned", role);
@@ -62,6 +70,34 @@ io.on("connection", (socket) => {
         io.to(roomName).emit("player_left", players);
         if (r.players.size === 0) delete rooms[roomName];
       }
+    }
+  });
+
+    // Le médecin demande d'initialiser/obtenir la cible
+  socket.on("heart_init", (room) => {
+    if (!rooms[room]) return;
+    const r = rooms[room];
+    if (r.heartTarget == null) r.heartTarget = randomTargetBpm();
+
+    // On n’envoie le bpm cible QU’AU médecin
+    const role = r.roles.get(socket.id);
+    if (role === "medic") {
+      socket.emit("heart_target", r.heartTarget);
+    }
+  });
+
+  // Le technicien tente une validation
+  socket.on("heart_validate", ({ room, bpm }) => {
+    if (!rooms[room]) return;
+    const r = rooms[room];
+    if (r.heartTarget == null) r.heartTarget = randomTargetBpm();
+
+    const ok = Number(bpm) === Number(r.heartTarget);
+    if (ok) {
+      io.to(room).emit("heart_solved");
+    } else {
+      // réponse minimale ; on évite de donner des indices
+      socket.emit("heart_wrong");
     }
   });
 });
